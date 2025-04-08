@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moneda cosa rara</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        #result, #history { margin-top: 20px; font-size: 20px; text-transform: lowercase; }
+        #historyOutput { white-space: pre-line; margin-top: 10px; text-transform: lowercase; }
+        #history { display: none; }
+    </style>
+</head>
+<body>
+    <h1>Moneda cosa rara</h1>
+    <p>Prem "A" per Cara (incrementa el recompte), "S" per Creu, "R" per mostrar els resultats.</p>
+    <label>
+        <input type="checkbox" id="realTimeToggle"> Resultats a temps real
+    </label>
+    <br>
+    <button onclick="addFlip('cara')">Cara (A)</button>
+    <button onclick="addFlip('creu')">Creu (S)</button>
+    <button onclick="toggleResultsAndHistory()">Mostrar/Amagar Resultats i Historial</button>
+    <button onclick="copyHistory()">Copiar Historial</button>
+    <button onclick="resetData()">Reiniciar</button>
+
+    <div id="result"></div>
+    <div id="history">
+        <h3>Historial de Llançaments:</h3>
+        <textarea id="historyOutput" rows="10" cols="30" readonly></textarea>
+    </div>
+
+    <script>
+        let caraCount = 0;
+        let creuCount = 0;
+        let realTime = false;
+        let history = [];
+        let resultsVisible = false;
+
+        document.getElementById("realTimeToggle").addEventListener("change", function() {
+            realTime = this.checked;
+        });
+
+        function addFlip(type) {
+            if (type === 'cara') {
+                caraCount++;
+                history.push("cara");
+            } else {
+                creuCount++;
+                history.push("creu");
+            }
+            updateHistory();
+            if (realTime) {
+                showResults();
+                showHistory();
+            } else {
+                hideResults();
+            }
+        }
+
+        function removeLastFlip() {
+            if (history.length === 0) return;
+            const last = history.pop();
+            if (last === "cara") caraCount--;
+            else if (last === "creu") creuCount--;
+            updateHistory();
+            if (realTime && resultsVisible) {
+                showResults();
+            } else {
+                hideResults();
+            }
+        }
+
+        function showResults() {
+            let totalFlips = caraCount + creuCount;
+            let caraPercentage = totalFlips ? (caraCount / totalFlips * 100).toFixed(2) : 0;
+            let creuPercentage = totalFlips ? (creuCount / totalFlips * 100).toFixed(2) : 0;
+
+            document.getElementById("result").innerHTML = `
+                <p>Total llançaments: ${totalFlips}</p>
+                <p>cara: ${caraCount} (${caraPercentage}%)</p>
+                <p>creu: ${creuCount} (${creuPercentage}%)</p>
+            `;
+        }
+
+        function hideResults() {
+            document.getElementById("result").innerHTML = "";
+        }
+
+        function updateHistory() {
+            document.getElementById("historyOutput").value = history.join("\n");
+        }
+
+        function copyHistory() {
+            const historyText = document.getElementById("historyOutput");
+            historyText.select();
+            historyText.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+            alert("Historial copiat al porta-retalls!");
+        }
+
+        function showHistory() {
+            document.getElementById("history").style.display = "block";
+        }
+
+        function toggleResultsAndHistory() {
+            resultsVisible = !resultsVisible;
+            if (resultsVisible) {
+                showResults();
+                showHistory();
+            } else {
+                hideResults();
+                document.getElementById("history").style.display = "none";
+            }
+        }
+
+        function resetData() {
+            caraCount = 0;
+            creuCount = 0;
+            history = [];
+            updateHistory();
+            hideResults();
+            document.getElementById("history").style.display = "none";
+            resultsVisible = false;
+        }
+
+        document.addEventListener("keydown", function(event) {
+            if (event.key.toLowerCase() === 'a') addFlip('cara');
+            if (event.key.toLowerCase() === 's') addFlip('creu');
+            if (event.key.toLowerCase() === 'r') toggleResultsAndHistory();
+            if (event.key === 'Backspace') {
+                event.preventDefault();
+                removeLastFlip();
+            }
+        });
+    </script>
+</body>
+</html>
